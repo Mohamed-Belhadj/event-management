@@ -45,7 +45,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/evento-admins/login", (req, res) => {
-    res.send("login page");
+    res.render("login.ejs");
 });
 
 app.get("/evento-admins/register", (req, res) => {
@@ -112,7 +112,7 @@ app.post("/register", async (req, res) => {
     } catch (err) {
       console.log(err);
     }
-  });
+});
 
 passport.use(
     "local",
@@ -146,7 +146,7 @@ passport.use(
         console.log(err);
       }
     })
-  );
+);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
