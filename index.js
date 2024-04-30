@@ -61,13 +61,80 @@ app.get("/logout", (req, res) => {
     });
 });
 
-app.get("/evento-admins/dashboard", (req, res) => {
+app.get("/evento-admins/dashboard", async(req, res) => {
 console.log(req.user);
-if (req.isAuthenticated()) {
-    res.send("dashboard page");
-} else {
-    res.redirect("/evento-admins/login");
-}
+// if (req.isAuthenticated()) {
+  try{
+    const event = await db.query("SELECT * FROM event WHERE id = 2");
+    const eventSpeackers = await db.query("SELECT s.first_name,s.last_name,s.expertise FROM speacker s INNER JOIN event_speacker_details esd ON s.id = esd.speacker_id INNER JOIN event e ON e.id = $1",[event.rows[0].id]);
+    const eventAttendants = await db.query("SELECT a.first_name, a.last_name, a.email, ear.status FROM attendant a INNER JOIN event_attendant_registration ear ON a.id = ear.attendant_id INNER JOIN event e ON e.id = $1",[event.rows[0].id]);
+    const eventInfo = {
+      event: event.rows[0],
+      eventSpeackers: eventSpeackers.rows,
+      eventAttendants: eventAttendants.rows
+    }
+    console.log(eventInfo);
+    res.render("dashboard.ejs");
+
+  }catch(err){
+    console.log(err);
+  }
+// } else {
+//     res.redirect("/evento-admins/login");
+// }
+});
+
+app.get('/evento-admins/attendant-list', async(req,res) => {
+  try{
+    const attendants = await db.query("SELECT * FROM attendant");;
+
+    console.log(attendants.rows);
+    res.json(attendants.rows);
+  }catch(err){
+    console.log(err);
+  }
+});
+
+app.get('/evento-admins/speacker-list', async(req,res) => {
+  try{
+    const speackers = await db.query("SELECT * FROM speacker");
+    
+    console.log(speackers.rows);
+    res.json(speackers.rows);
+  }catch(err){
+    console.log(err);
+  }
+});
+
+app.get('/evento-admins/ressource-list', async(req,res) => {
+  try{
+    const ressources = await db.query("SELECT * FROM ressource");
+    
+    console.log(ressources.rows);
+    res.json(ressources.rows);
+  }catch(err){
+    console.log(err);
+  }
+});
+
+app.get('/evento-admins/event-details/id=:id', async(req,res) => {
+  try{
+    const {title,id} = req.params
+    const event = await db.query("SELECT * FROM event WHERE id = $1",[id]);
+    const eventSpeackers = await db.query("SELECT s.first_name,s.last_name,s.expertise FROM speacker s INNER JOIN event_speacker_details esd ON s.id = esd.speacker_id INNER JOIN event e ON e.id = $1",[id]);
+    const eventAttendants = await db.query("SELECT a.first_name, a.last_name, a.email, ear.status FROM attendant a INNER JOIN event_attendant_registration ear ON a.id = ear.attendant_id INNER JOIN event e ON e.id = $1",[id]);
+    const eventSponsors = await db.query("SELECT es.amount, s.name as sponsor, s.email as sponsor_email FROM event_sponsorship es INNER JOIN event e ON es.event_id = $1 INNER JOIN sponsor s ON s.id = es.sponsor_id",[id]);
+    const eventInfo = {
+      event: event.rows[0],
+      speackers: eventSpeackers.rows,
+      attendants: eventAttendants.rows,
+      sponosors: eventSponsors.rows
+    }
+    console.log(eventInfo);
+    res.json(eventInfo);
+  }catch(err){
+    console.log(err);
+  }
 });
 
 
