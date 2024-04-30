@@ -3,6 +3,7 @@ dataCsv/
 
 # files
 queries.sql
+index.js
 
 # Logs
 logs
