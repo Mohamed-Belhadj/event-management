@@ -9,7 +9,7 @@ import env from "dotenv";
 
 const app = express();
 const port = 3000;
-const saltRounds = 10;
+const saltRounds = process.env.SALT_ROUNDS;
 env.config();
 
 app.use(
