@@ -2,4 +2,4 @@
 http://localhost:3000/login
 
 # to start the server
-nodemon index.js
+```nodemon index.js
