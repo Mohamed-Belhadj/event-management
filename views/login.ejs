@@ -1,31 +1,41 @@
 <%- include('partials/header') %>
 
-  <div class="container mt-5">
-    <h1>Login</h1>
-
-    <div class="row">
-      <div class="col-sm-8">
-        <div class="card">
-          <div class="card-body">
-
-            <!-- Makes POST request to /login route -->
-            <form action="/login" method="POST">
-              <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" name="username">
+  <div class="w-100 d-flex align-items-center justify-content-center" 
+       style="height: 100vh;background-image: url(/assets/images/login-background.png);background-size: cover;background-repeat: no-repeat;">
+       <div class="d-flex flex-column align-items-center px-3 py-4" style="width: 300px;height: fit-content;">
+        <img class="mb-5" src="/assets/icons/evento.png" width="120px"  alt="">
+        <form action="/login" method="POST" class="w-100 mt-3" >
+          <div class="d-flex flex-column align-items-center gap-4 w-100">
+            <div class="d-flex flex-column align-items-center gap-3 w-100">
+              <div class="d-flex align-items-center gap-2 px-2 w-100  rounded-2" style="border: solid 1px #8B5AFE;">
+                <img src="/assets/icons/mail.png" width="20px" height="20px" alt="">
+                <input type="email"
+                       name="username"
+                       placeholder="Email"
+                       class="w-100 p-2 border-0"
+                       style="background: #F8F8FA; font-size: 0.8rem;"
+                       required
+                >
               </div>
-              <div class="form-group mb-3">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" name="password">
+              <div class="d-flex align-items-center gap-2 px-2 rounded-2 w-100" style="border: solid 1px #8B5AFE;">
+                <img src="/assets/icons/lock.png" width="20px" height="20px" alt="">
+                <input type="password" 
+                       name="password"
+                       placeholder="Password"
+                       class="w-100 p-2 border-0"
+                       style="background: #F8F8FA;font-size: 0.8rem;"
+                       required
+                >
               </div>
-              <button type="submit" class="btn btn-dark">Login</button>
-            </form>
-
+            </div>
+            <input type="submit" value="LOGIN" class="w-100 border-0 py-2 rounded-2 shadow-sm" style="background-color: #8B5AFE;color: #ffffff;">
           </div>
+        </form>
+        <div class="d-flex justify-content-end w-100 mt-2">
+          <a href="#" class="text-decoration-none fw-900" style="color: rgba(6, 0, 64, 0.5);font-size: 0.9rem;">Forgot password?</a>
         </div>
-      </div>
-
-    </div>
+       </div>
+    
   </div>
 
   <%- include('partials/footer') %>

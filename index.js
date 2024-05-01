@@ -9,7 +9,7 @@ import env from "dotenv";
 
 const app = express();
 const port = 3000;
-const saltRounds = process.env.SALT_ROUNDS;
+const saltRounds = 10;
 env.config();
 
 app.use(
@@ -40,12 +40,8 @@ db.connect();
 
 //*********************************************** GET REQUESTS ************************************* */
 
-app.get("/", (req, res) => {
-    res.send("home Page");
-});
-
 app.get("/evento-admins/login", (req, res) => {
-    res.render("login.ejs");
+  res.render("login.ejs");
 });
 
 app.get("/evento-admins/register", (req, res) => {
@@ -61,9 +57,9 @@ app.get("/logout", (req, res) => {
     });
 });
 
-app.get("/evento-admins/dashboard", async(req, res) => {
+app.get("/evento-admins", async(req, res) => {
 console.log(req.user);
-// if (req.isAuthenticated()) {
+if (req.isAuthenticated()) {
   try{
     const event = await db.query("SELECT * FROM event WHERE id = 2");
     const eventSpeackers = await db.query("SELECT s.first_name,s.last_name,s.expertise FROM speacker s INNER JOIN event_speacker_details esd ON s.id = esd.speacker_id INNER JOIN event e ON e.id = $1",[event.rows[0].id]);
@@ -79,78 +75,160 @@ console.log(req.user);
   }catch(err){
     console.log(err);
   }
-// } else {
-//     res.redirect("/evento-admins/login");
-// }
+} else {
+    res.redirect("/evento-admins/login");
+}
 });
 
 app.get('/evento-admins/attendant-list', async(req,res) => {
-  try{
-    const attendants = await db.query("SELECT * FROM attendant");;
+  if (req.isAuthenticated()) {
+    try{
+      const attendants = await db.query("SELECT * FROM attendant");;
 
-    console.log(attendants.rows);
-    res.json(attendants.rows);
-  }catch(err){
-    console.log(err);
+      console.log(attendants.rows);
+      res.json(attendants.rows);
+    }catch(err){
+      console.log(err);
+    }
+  }else{
+    res.redirect("/evento-admins/login");
   }
 });
 
+// if (req.isAuthenticated()) {
+// }else{
+//   redirect("/evento-admins/login");
+// }
+
 app.get('/evento-admins/speacker-list', async(req,res) => {
-  try{
-    const speackers = await db.query("SELECT * FROM speacker");
-    
-    console.log(speackers.rows);
-    res.json(speackers.rows);
-  }catch(err){
-    console.log(err);
+  if (req.isAuthenticated()) {
+    try{
+      const speackers = await db.query("SELECT * FROM speacker");
+      
+      console.log(speackers.rows);
+      res.json(speackers.rows);
+    }catch(err){
+      console.log(err);
+    }
+  }else{
+    res.redirect("/evento-admins/login");
   }
+  
+});
+
+app.get('/evento-admins/add-speacker', async(req,res) => {
+  if (req.isAuthenticated()) {
+    try{
+      res.render("speackerCreationForm.ejs")
+    }catch(err){
+      console.log(err);
+    }
+  }else{
+    res.redirect("/evento-admins/login");
+  }
+  
+  
+});
+
+app.get('/evento-admins/member-list', async(req,res) => {
+  if (req.isAuthenticated()) {
+    try{
+      const member = await db.query("SELECT (first_name,last_name,email,role) FROM member");
+      
+      console.log(member.rows);
+      res.json(member.rows);
+    }catch(err){
+      console.log(err);
+    }
+  }else{
+    res.redirect("/evento-admins/login");
+  }
+    
 });
 
 app.get('/evento-admins/ressource-list', async(req,res) => {
-  try{
-    const ressources = await db.query("SELECT * FROM ressource");
-    
-    console.log(ressources.rows);
-    res.json(ressources.rows);
-  }catch(err){
-    console.log(err);
-  }
+  if (req.isAuthenticated()) {
+    try{
+      const ressources = await db.query("SELECT * FROM ressource");
+      
+      console.log(ressources.rows);
+      res.json(ressources.rows);
+    }catch(err){
+      console.log(err);
+    }
+  }else{
+    res.redirect("/evento-admins/login");
+  }  
+  
+});
+
+app.get('/evento-admins/sponsor-list', async(req,res) => {
+  if (req.isAuthenticated()) {
+    try{
+      const sponsor = await db.query("SELECT * FROM sponsor");
+      
+      console.log(sponsor.rows);
+      res.json(sponsor.rows);
+    }catch(err){
+      console.log(err);
+    }
+  }else{
+    res.redirect("/evento-admins/login");
+  }  
+  
+});
+
+app.get('/evento-admins/event-list', async(req,res) => {
+  if (req.isAuthenticated()) {
+    try{
+      const eventList = await db.query("SELECT * FROM event");
+      console.log(eventList.rows);
+      res.json(eventList.rows);
+    }catch(err){
+      console.log(err);
+    }
+  }else{
+    res.redirect("/evento-admins/login");
+  }  
 });
 
 app.get('/evento-admins/event-details/id=:id', async(req,res) => {
-  try{
-    const {title,id} = req.params
-    const event = await db.query("SELECT * FROM event WHERE id = $1",[id]);
-    const eventSpeackers = await db.query("SELECT s.first_name,s.last_name,s.expertise FROM speacker s INNER JOIN event_speacker_details esd ON s.id = esd.speacker_id INNER JOIN event e ON e.id = $1",[id]);
-    const eventAttendants = await db.query("SELECT a.first_name, a.last_name, a.email, ear.status FROM attendant a INNER JOIN event_attendant_registration ear ON a.id = ear.attendant_id INNER JOIN event e ON e.id = $1",[id]);
-    const eventSponsors = await db.query("SELECT es.amount, s.name as sponsor, s.email as sponsor_email FROM event_sponsorship es INNER JOIN event e ON es.event_id = $1 INNER JOIN sponsor s ON s.id = es.sponsor_id",[id]);
-    const eventInfo = {
-      event: event.rows[0],
-      speackers: eventSpeackers.rows,
-      attendants: eventAttendants.rows,
-      sponosors: eventSponsors.rows
+  if (req.isAuthenticated()) {
+    try{
+      const {id} = req.params;
+      const event = await db.query("SELECT * FROM event WHERE id = $1",[id]);
+      const eventSpeackers = await db.query("SELECT s.first_name,s.last_name,s.expertise FROM speacker s INNER JOIN event_speacker_details esd ON s.id = esd.speacker_id INNER JOIN event e ON e.id = $1",[id]);
+      const eventAttendants = await db.query("SELECT a.first_name, a.last_name, a.email, ear.status FROM attendant a INNER JOIN event_attendant_registration ear ON a.id = ear.attendant_id INNER JOIN event e ON e.id = $1",[id]);
+      const eventSponsors = await db.query("SELECT es.amount, s.name as sponsor, s.email as sponsor_email FROM event_sponsorship es INNER JOIN event e ON es.event_id = $1 INNER JOIN sponsor s ON s.id = es.sponsor_id",[id]);
+      const eventInfo = {
+        event: event.rows[0],
+        speackers: eventSpeackers.rows,
+        attendants: eventAttendants.rows,
+        sponosors: eventSponsors.rows
+      }
+      console.log(eventInfo);
+      res.json(eventInfo);
+    }catch(err){
+      console.log(err);
     }
-    console.log(eventInfo);
-    res.json(eventInfo);
-  }catch(err){
-    console.log(err);
-  }
+  }else{
+    res.redirect("/evento-admins/login");
+  }  
 });
 
 
 //*********************************************** POST REQUESTS ************************************* */
-
+// (req, res) => {console.log(req.body);}
 app.post(
-    "/login",
+    "/login", 
     passport.authenticate("local", {
-        successRedirect: "/evento-admins/dashboard",
+        successRedirect: "/evento-admins",
         failureRedirect: "/evento-admins/login",
     })
 );
 
 app.post("/register", async (req, res) => {
-    const email = req.body.username;
-    const password = req.body.password;
+    const {email, password,first_name,last_name,age,role,phone_number} = req.body;
   
     try {
       const checkResult = await db.query("SELECT * FROM member WHERE email = $1", [
@@ -165,8 +243,8 @@ app.post("/register", async (req, res) => {
             console.error("Error hashing password:", err);
           } else {
             const result = await db.query(
-              "INSERT INTO member (email, password) VALUES ($1, $2) RETURNING *",
-              [email, hash]
+              "INSERT INTO member (email, password,first_name,last_name,age,role,phone_number) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+              [email, hash, first_name, last_name, age, role, phone_number]
             );
             const user = result.rows[0];
             req.login(user, (err) => {
@@ -182,38 +260,46 @@ app.post("/register", async (req, res) => {
 });
 
 passport.use(
-    "local",
-    new Strategy(async function verify(username, password, cb) {
-      try {
-        const result = await db.query("SELECT * FROM member WHERE email = $1 ", [
-          username,
-        ]);
-        if (result.rows.length > 0) {
-          const user = result.rows[0];
-          const storedHashedPassword = user.password;
-          bcrypt.compare(password, storedHashedPassword, (err, valid) => {
-            if (err) {
-              //Error with password check
-              console.error("Error comparing passwords:", err);
-              return cb(err);
+  "local",
+  new Strategy(async function verify(username, password, cb) {
+    try {
+      const result = await db.query("SELECT * FROM member WHERE email = $1 ", [
+        username,
+      ]);
+      if (result.rows.length > 0) {
+        const user = result.rows[0];
+        const storedHashedPassword = user.password;
+        bcrypt.compare(password, storedHashedPassword, (err, valid) => {
+          if (err) {
+            //Error with password check
+            console.error("Error comparing passwords:", err);
+            return cb(err);
+          } else {
+            if (valid) {
+              //Passed password check
+              return cb(null, user);
             } else {
-              if (valid) {
-                //Passed password check
-                return cb(null, user);
-              } else {
-                //Did not pass password check
-                return cb(null, false);
-              }
+              //Did not pass password check
+              return cb(null, false);
             }
-          });
-        } else {
-          return cb("User not found");
-        }
-      } catch (err) {
-        console.log(err);
+          }
+        });
+      } else {
+        return cb("User not found");
       }
-    })
+    } catch (err) {
+      console.log(err);
+    }
+  })
 );
+
+passport.serializeUser((user, cb) => {
+  cb(null, user);
+});
+
+passport.deserializeUser((user, cb) => {
+  cb(null, user);
+});
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
